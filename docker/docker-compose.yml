@@ -1,0 +1,112 @@
+version: '2'
+
+services:
+  postgres:
+    image: postgres:11.7-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: postgres_database
+    volumes:
+       - /srv/docker/postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    mem_limit: 128MB
+    memswap_limit: 128MB
+    mem_reservation: 128MB
+    privileged: true
+    restart: always
+
+  MongoDB:
+    image: mongo:3.6-jessie
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - /srv/docker/mongodb:/data/db
+    command: mongod --smallfiles
+    mem_limit: 2GB
+    memswap_limit: 2GB
+    mem_reservation: 2GB
+    privileged: true
+    restart: always
+
+  rabbit:
+    image: "rabbitmq:3.6-management"
+    container_name: mqrabbit
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "ASDYUDFIASYUDF"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+      - "55672:55672"
+    labels:
+      NAME: "rabbitmq"
+    volumes:
+      - /srv/docker/rabbitmq:/var/lib/rabbitmq
+    mem_limit: 300MB
+    memswap_limit: 300MB
+    mem_reservation: 300MB
+    privileged: true
+    restart: always
+
+  elasticSearch_1:
+    image: blacktop/elasticsearch:7.7
+    container_name: elasticsearch7
+    # environment:
+    #   - node.name=elasticsearch7
+    #   - cluster.name=docker-cluster
+    #   - cluster.initial_master_nodes=elasticsearch7
+    #   - bootstrap.memory_lock=true
+    #   - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    # ulimits:
+    #   nproc: 65535
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+    #   nofile:
+    #     soft: 65536
+    #     hard: 65536
+    # mem_limit: 2048MB
+    # cap_add:
+    #   - IPC_LOCK
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+
+    volumes:
+      - /srv/docker/elasticsearch/docker/elasticsearch_1:/var/lib/elasticsearch
+      - /srv/docker/elasticsearch/config/elasticsearch_1.yml:/etc/elasticsearch/config/elasticsearch.yml
+
+    # tty : true
+    # mem_limit: 4048MB
+    # memswap_limit: 2048MB
+    # mem_reservation: 2048MB
+    # cpu_shares: 73
+    # cpu_quota: 50000
+    # cpuset: 0,1
+    privileged: true
+    restart: always
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /srv/docker/redis:/var/lib/redis
+    mem_limit: 128MB
+    memswap_limit: 128MB
+    mem_reservation: 128MB
+    privileged: true
+    restart: always
+
+networks:
+  postgres:
+    driver: bridge
